@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NutricionMacros.API.Data;
 using System.Security.Claims;
+using Npgsql;
 
 AppContext.SetSwitch("System.Net.Sockets.Socket.OSSupportsIPv6", false);
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -30,8 +31,9 @@ builder.Services.AddCors(options =>
 // 2. CONFIGURACIÓN DE POSTGRESQL (SUPABASE)
 // ==========================================
 var connectionString = builder.Configuration.GetConnectionString("SupabaseConnection");
+var dataSource = new NpgsqlDataSourceBuilder(connectionString).Build();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(dataSource));
 
 // ==========================================
 // 3. CONFIGURACIÓN DE AUTENTICACIÓN JWT
