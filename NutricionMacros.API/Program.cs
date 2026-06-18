@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using NutricionMacros.API.Data;
 using System.Security.Claims;
 
+AppContext.SetSwitch("System.Net.Sockets.Socket.OSSupportsIPv6", false);
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var builder = WebApplication.CreateBuilder(args);
 
