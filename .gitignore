@@ -486,8 +486,8 @@ $RECYCLE.BIN/
 # Configuraciones sensibles
 # ====================
 
-appsettings.json
-appsettings.Development.json
+#appsettings.json
+#appsettings.Development.json
 
 # ====================
 # Carpetas y archivos de Visual Studio
