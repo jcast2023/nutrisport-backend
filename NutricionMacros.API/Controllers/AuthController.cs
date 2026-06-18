@@ -75,7 +75,8 @@ namespace NutricionMacros.API.Controllers
                     usuario.Id,
                     usuario.Nombre,
                     usuario.Apellido,
-                    usuario.Email
+                    usuario.Email,
+                    Rol = usuario.Rol
                 }
             });
         }
