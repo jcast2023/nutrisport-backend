@@ -59,7 +59,7 @@ namespace NutricionMacros.API.Controllers
 
         // DELETE: api/Alimentos/{id}
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Nutricionista")]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Eliminar(int id)
         {
             var alimento = await _context.Alimentos.FindAsync(id);
@@ -71,7 +71,7 @@ namespace NutricionMacros.API.Controllers
 
         // PUT: api/Alimentos/{id}
         [HttpPut("{id}")]
-        [Authorize(Roles = "Nutricionista")]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Actualizar(int id, [FromBody] AlimentoCrearDto request)
         {
             var alimento = await _context.Alimentos.FindAsync(id);

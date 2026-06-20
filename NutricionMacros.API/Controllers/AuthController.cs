@@ -111,7 +111,7 @@ namespace NutricionMacros.API.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        // GET: api/Auth/Pacientes — solo Nutricionista
+        // GET: api/Auth/Pacientes
         [HttpGet("Pacientes")]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> GetPacientes()

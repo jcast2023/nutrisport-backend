@@ -83,7 +83,7 @@ namespace NutricionMacros.API.Controllers
 
         // GET: api/Mediciones/Paciente/{usuarioId} — admin ve historial de un paciente
         [HttpGet("Paciente/{usuarioId}")]
-        [Authorize(Roles = "Nutricionista")]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> GetHistorialPaciente(int usuarioId)
         {
             var mediciones = await _context.MedicionesCorporales
@@ -106,9 +106,9 @@ namespace NutricionMacros.API.Controllers
 
             return Ok(mediciones);
         }
-        // POST: api/Mediciones/RegistrarParaPaciente/{usuarioId} — solo Nutricionista
+        // POST: api/Mediciones/RegistrarParaPaciente/{usuarioId}
         [HttpPost("RegistrarParaPaciente/{usuarioId}")]
-        [Authorize(Roles = "Nutricionista")]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> RegistrarParaPaciente(int usuarioId, [FromBody] MedicionCrearDto dto)
         {
             var pacienteExiste = await _context.Usuarios.AnyAsync(u => u.Id == usuarioId);

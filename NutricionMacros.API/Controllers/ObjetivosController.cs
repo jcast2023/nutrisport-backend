@@ -21,9 +21,9 @@ namespace NutricionMacros.API.Controllers
             _context = context;
         }
 
-        // POST: api/Objetivos (Asignar meta - El Nutricionista)
+        // POST: api/Objetivos 
         [HttpPost]
-        [Authorize(Roles = "Nutricionista")]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> AsignarObjetivo([FromBody] ObjetivoNutricional objetivo)
         {
             objetivo.FechaAsignacion = DateTime.UtcNow;
@@ -33,7 +33,7 @@ namespace NutricionMacros.API.Controllers
             return Ok(new { mensaje = "Objetivo nutricional asignado con éxito", objetivo });
         }
 
-        // GET: api/Objetivos/Paciente/5 (El paciente o nutricionista ve la meta actual)
+        // GET: api/Objetivos/Paciente/5 
         [HttpGet("Paciente/{usuarioId}")]
         public async Task<IActionResult> GetObjetivoActual(int usuarioId)
         {
