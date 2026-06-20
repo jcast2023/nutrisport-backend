@@ -12,7 +12,6 @@ namespace NutricionMacros.API.Models
         [StringLength(100)]
         public string Nombre { get; set; } = string.Empty;
 
-        // 🔥 AGREGAMOS APELLIDO PARA CORREGIR LOS ERRORES
         [Required]
         [StringLength(100)]
         public string Apellido { get; set; } = string.Empty;
@@ -25,12 +24,15 @@ namespace NutricionMacros.API.Models
         [Required]
         public string PasswordHash { get; set; } = string.Empty;
 
-        // 🔥 AGREGAMOS FECHA DE REGISTRO
         [Required]
         public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
 
         [Required]
         [StringLength(30)]
-        public string Rol { get; set; } = "Atleta"; // "Atleta" o "Nutricionista"
+        public string Rol { get; set; } = "Atleta"; 
+
+        public string? ResetToken { get; set; }
+
+        public DateTime? ResetTokenExpiracion { get; set; }
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using NutricionMacros.API.Data;
 using NutricionMacros.API.Models;
+using NutricionMacros.API.Services;
 
 namespace NutricionMacros.API.Controllers
 {
@@ -16,12 +17,14 @@ namespace NutricionMacros.API.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _config;
+        private readonly IEmailService _emailService;
 
         // Inyectamos el contexto de la BD y las configuraciones del appsettings
-        public AuthController(ApplicationDbContext context, IConfiguration config)
+        public AuthController(ApplicationDbContext context, IConfiguration config, IEmailService emailService)
         {
             _context = context;
             _config = config;
+            _emailService = emailService;
         }
 
         [HttpPost("register")]
@@ -126,6 +129,69 @@ namespace NutricionMacros.API.Controllers
                 .ToListAsync();
 
             return Ok(pacientes);
+        }
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto request)
+        {
+            var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == request.Email.ToLower().Trim());
+
+            // Por ciberseguridad, si el correo no existe, respondemos con éxito genérico 
+            // para evitar que un atacante descubra qué correos están registrados.
+            if (usuario == null)
+            {
+                return Ok(new { mensaje = "Si el correo electrónico coincide con una cuenta, recibirás un enlace para restablecer tu contraseña." });
+            }
+
+            // Generamos un token aleatorio seguro de 32 bytes en formato Hexadecimal
+            string tokenHex = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+
+            usuario.ResetToken = tokenHex;
+            usuario.ResetTokenExpiracion = DateTime.UtcNow.AddMinutes(15); // Válido por 15 minutos
+
+            await _context.SaveChangesAsync();
+
+            // Enlace temporal que apuntará a tu ruta de Angular en localhost
+            string urlFrontend = $"http://localhost:4200/reset-password?token={tokenHex}";
+
+            string cuerpoHtml = $@"
+        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;'>
+            <h2 style='color: #333; text-align: center;'>Recuperación de Contraseña</h2>
+            <p>Hola, <strong>{usuario.Nombre}</strong>.</p>
+            <p>Has solicitado restablecer la contraseña de tu cuenta en <strong>NutricionMacrosApp</strong>. Haz clic en el botón de abajo para configurar una nueva clave:</p>
+            <div style='text-align: center; margin: 30px 0;'>
+                <a href='{urlFrontend}' style='background-color: #007bff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;'>Restablecer mi contraseña</a>
+            </div>
+            <p style='color: #666; font-size: 12px;'>Este enlace expirará automáticamente en 15 minutos por motivos de seguridad.</p>
+            <p style='color: #666; font-size: 12px;'>Si no solicitaste este cambio, puedes ignorar este correo de forma segura.</p>
+        </div>";
+
+            await _emailService.EnviarCorreoAsync(usuario.Email, "Restablecer Contraseña - NutricionMacros", cuerpoHtml);
+
+            return Ok(new { mensaje = "Si el correo electrónico coincide con una cuenta, recibirás un enlace para restablecer tu contraseña." });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto request)
+        {
+            // Buscamos el registro que coincida con el token guardado
+            var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.ResetToken == request.Token);
+
+            // Validamos si el token existe o si ya expiró comparándolo con la hora actual UTC
+            if (usuario == null || usuario.ResetTokenExpiracion < DateTime.UtcNow)
+            {
+                return BadRequest(new { mensaje = "El enlace de recuperación es inválido o ya ha expirado." });
+            }
+
+            // Hasheamos la nueva contraseña de forma segura utilizando BCrypt
+            usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NuevaPassword.Trim());
+
+            // Limpiamos los campos del token para invalidarlo inmediatamente
+            usuario.ResetToken = null;
+            usuario.ResetTokenExpiracion = null;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { mensaje = "Contraseña restablecida con éxito. Ya puedes iniciar sesión con tus nuevas credenciales." });
         }
     }
 }

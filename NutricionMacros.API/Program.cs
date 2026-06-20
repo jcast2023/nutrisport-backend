@@ -30,7 +30,7 @@ builder.Services.AddCors(options =>
 // ==========================================
 // 2. CONFIGURACIÓN DE POSTGRESQL (SUPABASE)
 // ==========================================
-var connectionString = builder.Configuration.GetConnectionString("SupabaseConnection");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 var dataSource = new NpgsqlDataSourceBuilder(connectionString).Build();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(dataSource));
@@ -95,7 +95,8 @@ builder.Services.AddSwaggerGen(c =>
         { securityScheme, Array.Empty<string>() }
     });
 });
-
+// Registrar nuestro servicio de correos para Inyección de Dependencias
+builder.Services.AddScoped<NutricionMacros.API.Services.IEmailService, NutricionMacros.API.Services.EmailService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
