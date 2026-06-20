@@ -17,7 +17,7 @@ namespace NutricionMacros.API.Services
         {
             var email = new MimeMessage();
             
-            email.From.Add(MailboxAddress.Parse(_config["EmailSettings:Username"]));
+            email.From.Add(MailboxAddress.Parse(_config["EmailSettings__Username"]));
             email.To.Add(MailboxAddress.Parse(para));
             email.Subject = asunto;
 
@@ -29,7 +29,7 @@ namespace NutricionMacros.API.Services
             // CAMBIO CRÍTICO: Puerto 465 y SslOnConnect
             await smtp.ConnectAsync("smtp.gmail.com", 465, MailKit.Security.SecureSocketOptions.SslOnConnect);
 
-            await smtp.AuthenticateAsync(_config["EmailSettings:Username"], _config["EmailSettings:Password"]);
+            await smtp.AuthenticateAsync(_config["EmailSettings__Username"], _config["EmailSettings__Password"]);
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
         }
