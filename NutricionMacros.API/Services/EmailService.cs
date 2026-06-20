@@ -1,37 +1,60 @@
 ﻿using MailKit.Net.Smtp;
 using MimeKit;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace NutricionMacros.API.Services
 {
     public class EmailService : IEmailService
     {
         private readonly IConfiguration _config;
+        private readonly ILogger<EmailService> _logger;
 
-        public EmailService(IConfiguration config)
+        public EmailService(IConfiguration config, ILogger<EmailService> logger)
         {
             _config = config;
+            _logger = logger;
         }
 
         public async Task EnviarCorreoAsync(string para, string asunto, string mensajeHtml)
         {
-            var email = new MimeMessage();
-            
-            email.From.Add(MailboxAddress.Parse(_config["EmailSettings__Username"]));
-            email.To.Add(MailboxAddress.Parse(para));
-            email.Subject = asunto;
+            try
+            {
+                var email = new MimeMessage();
 
-            var bodyBuilder = new BodyBuilder { HtmlBody = mensajeHtml };
-            email.Body = bodyBuilder.ToMessageBody();
+                var fromEmail = _config["EmailSettings:Username"];
+                var password = _config["EmailSettings:Password"];
 
-            using var smtp = new SmtpClient();
+                _logger.LogInformation($"📧 Intentando enviar email a: {para}");
+                _logger.LogInformation($"📧 Desde: {fromEmail}");
 
-            // CAMBIO CRÍTICO: Puerto 465 y SslOnConnect
-            await smtp.ConnectAsync("smtp.gmail.com", 465, MailKit.Security.SecureSocketOptions.SslOnConnect);
+                email.From.Add(MailboxAddress.Parse(fromEmail));
+                email.To.Add(MailboxAddress.Parse(para));
+                email.Subject = asunto;
 
-            await smtp.AuthenticateAsync(_config["EmailSettings__Username"], _config["EmailSettings__Password"]);
-            await smtp.SendAsync(email);
-            await smtp.DisconnectAsync(true);
+                var bodyBuilder = new BodyBuilder { HtmlBody = mensajeHtml };
+                email.Body = bodyBuilder.ToMessageBody();
+
+                using var smtp = new SmtpClient();
+
+                _logger.LogInformation("🔐 Conectando a SMTP...");
+                await smtp.ConnectAsync("smtp.gmail.com", 465, MailKit.Security.SecureSocketOptions.SslOnConnect);
+
+                _logger.LogInformation("🔐 Autenticando...");
+                await smtp.AuthenticateAsync(fromEmail, password);
+
+                _logger.LogInformation("📤 Enviando email...");
+                await smtp.SendAsync(email);
+
+                _logger.LogInformation("✅ Email enviado exitosamente");
+                await smtp.DisconnectAsync(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"❌ Error al enviar email: {ex.Message}");
+                _logger.LogError($"❌ Stack Trace: {ex.StackTrace}");
+                throw;
+            }
         }
     }
 }

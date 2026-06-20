@@ -151,7 +151,9 @@ namespace NutricionMacros.API.Controllers
             await _context.SaveChangesAsync();
 
             // Enlace temporal que apuntará a tu ruta de Angular en localhost
-            string urlFrontend = $"http://localhost:4200/reset-password?token={tokenHex}";
+            string frontendUrl = _config["AppSettings:FrontendUrl"] ?? "http://localhost:4200";
+            string urlFrontend = $"{frontendUrl}/reset-password?token={tokenHex}";
+
 
             string cuerpoHtml = $@"
         <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;'>
