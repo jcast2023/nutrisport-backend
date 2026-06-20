@@ -135,39 +135,26 @@ namespace NutricionMacros.API.Controllers
         {
             var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == request.Email.ToLower().Trim());
 
-            // Por ciberseguridad, si el correo no existe, respondemos con éxito genérico 
-            // para evitar que un atacante descubra qué correos están registrados.
             if (usuario == null)
             {
                 return Ok(new { mensaje = "Si el correo electrónico coincide con una cuenta, recibirás un enlace para restablecer tu contraseña." });
             }
 
-            // Generamos un token aleatorio seguro de 32 bytes en formato Hexadecimal
             string tokenHex = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
-
             usuario.ResetToken = tokenHex;
-            usuario.ResetTokenExpiracion = DateTime.UtcNow.AddMinutes(15); // Válido por 15 minutos
-
+            usuario.ResetTokenExpiracion = DateTime.UtcNow.AddMinutes(15);
             await _context.SaveChangesAsync();
 
-            // Enlace temporal que apuntará a tu ruta de Angular en localhost
             string frontendUrl = _config["AppSettings:FrontendUrl"] ?? "http://localhost:4200";
             string urlFrontend = $"{frontendUrl}/reset-password?token={tokenHex}";
 
+            string cuerpoHtml = $@"...";
 
-            string cuerpoHtml = $@"
-        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;'>
-            <h2 style='color: #333; text-align: center;'>Recuperación de Contraseña</h2>
-            <p>Hola, <strong>{usuario.Nombre}</strong>.</p>
-            <p>Has solicitado restablecer la contraseña de tu cuenta en <strong>NutricionMacrosApp</strong>. Haz clic en el botón de abajo para configurar una nueva clave:</p>
-            <div style='text-align: center; margin: 30px 0;'>
-                <a href='{urlFrontend}' style='background-color: #007bff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;'>Restablecer mi contraseña</a>
-            </div>
-            <p style='color: #666; font-size: 12px;'>Este enlace expirará automáticamente en 15 minutos por motivos de seguridad.</p>
-            <p style='color: #666; font-size: 12px;'>Si no solicitaste este cambio, puedes ignorar este correo de forma segura.</p>
-        </div>";
-
-            await _emailService.EnviarCorreoAsync(usuario.Email, "Restablecer Contraseña - NutricionMacros", cuerpoHtml);
+            // 🔑 IMPORTANTE: No esperes, dispara y olvida (Fire-and-forget)
+            // El usuario recibe respuesta inmediatamente
+#pragma warning disable CS4014
+            _emailService.EnviarCorreoAsync(usuario.Email, "Restablecer Contraseña", cuerpoHtml);
+#pragma warning restore CS4014
 
             return Ok(new { mensaje = "Si el correo electrónico coincide con una cuenta, recibirás un enlace para restablecer tu contraseña." });
         }

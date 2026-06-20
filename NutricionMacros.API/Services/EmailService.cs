@@ -25,7 +25,6 @@ namespace NutricionMacros.API.Services
                 var password = _config["EmailSettings:Password"];
 
                 _logger.LogInformation($"📧 Intentando enviar email a: {para}");
-                _logger.LogInformation($"📧 Desde: {fromEmail}");
 
                 email.From.Add(MailboxAddress.Parse(fromEmail));
                 email.To.Add(MailboxAddress.Parse(para));
@@ -35,25 +34,26 @@ namespace NutricionMacros.API.Services
                 email.Body = bodyBuilder.ToMessageBody();
 
                 using var smtp = new SmtpClient();
+                smtp.Timeout = 30000; // 30 segundos (como Spring Boot)
 
-                _logger.LogInformation("🔐 Conectando a SMTP...");
-                // CAMBIO: Puerto 587 con StartTlsAsync
+                _logger.LogInformation("🔐 Conectando a SMTP en puerto 587...");
                 await smtp.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
 
-                _logger.LogInformation("🔐 Autenticando...");
+                _logger.LogInformation("🔐 Autenticando con Gmail...");
                 await smtp.AuthenticateAsync(fromEmail, password);
 
                 _logger.LogInformation("📤 Enviando email...");
                 await smtp.SendAsync(email);
 
-                _logger.LogInformation("✅ Email enviado exitosamente");
+                _logger.LogInformation("✅ Email enviado exitosamente a: {para}", para);
                 await smtp.DisconnectAsync(true);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"❌ Error al enviar email: {ex.Message}");
-                _logger.LogError($"❌ Stack Trace: {ex.StackTrace}");
-                throw;
+                _logger.LogError($"❌ Error al enviar email a {para}: {ex.Message}");
+                _logger.LogError($"❌ Detalles: {ex.StackTrace}");
+                // ⚠️ NO relanzamos la excepción para que no bloquee la respuesta
+                // El email fallará pero el usuario recibirá respuesta
             }
         }
     }
