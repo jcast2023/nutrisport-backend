@@ -20,7 +20,7 @@ namespace NutricionMacros.API.Services
         {
             try
             {
-                var apiKey = _config["SendGrid:ApiKey"];
+                var apiKey = Environment.GetEnvironmentVariable("SENDGRID_APIKEY");
                 var fromEmail = _config["EmailSettings:Username"];
 
                 var client = new SendGridClient(apiKey);
