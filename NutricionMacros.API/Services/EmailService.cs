@@ -1,5 +1,5 @@
-﻿using MailKit.Net.Smtp;
-using MimeKit;
+﻿using SendGrid;
+using SendGrid.Helpers.Mail;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -20,40 +20,38 @@ namespace NutricionMacros.API.Services
         {
             try
             {
-                var email = new MimeMessage();
+                var apiKey = _config["SendGrid:ApiKey"];
                 var fromEmail = _config["EmailSettings:Username"];
-                var password = _config["EmailSettings:Password"];
 
-                _logger.LogInformation($"📧 Intentando enviar email a: {para}");
+                var client = new SendGridClient(apiKey);
+                var from = new EmailAddress(fromEmail, "NutricionMacros");
+                var to = new EmailAddress(para);
 
-                email.From.Add(MailboxAddress.Parse(fromEmail));
-                email.To.Add(MailboxAddress.Parse(para));
-                email.Subject = asunto;
+                var msg = new SendGridMessage()
+                {
+                    From = from,
+                    Subject = asunto,
+                    HtmlContent = mensajeHtml
+                };
+                msg.AddTo(to);
 
-                var bodyBuilder = new BodyBuilder { HtmlBody = mensajeHtml };
-                email.Body = bodyBuilder.ToMessageBody();
+                _logger.LogInformation($"📧 Enviando email a {para} vía SendGrid...");
 
-                using var smtp = new SmtpClient();
-                smtp.Timeout = 30000; // 30 segundos (como Spring Boot)
+                var response = await client.SendEmailAsync(msg);
 
-                _logger.LogInformation("🔐 Conectando a SMTP en puerto 587...");
-                await smtp.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
-
-                _logger.LogInformation("🔐 Autenticando con Gmail...");
-                await smtp.AuthenticateAsync(fromEmail, password);
-
-                _logger.LogInformation("📤 Enviando email...");
-                await smtp.SendAsync(email);
-
-                _logger.LogInformation("✅ Email enviado exitosamente a: {para}", para);
-                await smtp.DisconnectAsync(true);
+                if (response.StatusCode == System.Net.HttpStatusCode.Accepted)
+                {
+                    _logger.LogInformation($"✅ Email enviado exitosamente a {para}");
+                }
+                else
+                {
+                    _logger.LogError($"❌ SendGrid respondió con: {response.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"❌ Error al enviar email a {para}: {ex.Message}");
+                _logger.LogError($"❌ Error enviando email: {ex.Message}");
                 _logger.LogError($"❌ Detalles: {ex.StackTrace}");
-                // ⚠️ NO relanzamos la excepción para que no bloquee la respuesta
-                // El email fallará pero el usuario recibirá respuesta
             }
         }
     }
