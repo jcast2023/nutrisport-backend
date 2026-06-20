@@ -21,7 +21,6 @@ namespace NutricionMacros.API.Services
             try
             {
                 var email = new MimeMessage();
-
                 var fromEmail = _config["EmailSettings:Username"];
                 var password = _config["EmailSettings:Password"];
 
@@ -38,7 +37,8 @@ namespace NutricionMacros.API.Services
                 using var smtp = new SmtpClient();
 
                 _logger.LogInformation("🔐 Conectando a SMTP...");
-                await smtp.ConnectAsync("smtp.gmail.com", 465, MailKit.Security.SecureSocketOptions.SslOnConnect);
+                // CAMBIO: Puerto 587 con StartTlsAsync
+                await smtp.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
 
                 _logger.LogInformation("🔐 Autenticando...");
                 await smtp.AuthenticateAsync(fromEmail, password);
