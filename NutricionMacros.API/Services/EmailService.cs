@@ -25,8 +25,10 @@ namespace NutricionMacros.API.Services
             email.Body = bodyBuilder.ToMessageBody();
 
             using var smtp = new SmtpClient();
-            
-            await smtp.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+
+            // CAMBIO CRÍTICO: Puerto 465 y SslOnConnect
+            await smtp.ConnectAsync("smtp.gmail.com", 465, MailKit.Security.SecureSocketOptions.SslOnConnect);
+
             await smtp.AuthenticateAsync(_config["EmailSettings:Username"], _config["EmailSettings:Password"]);
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
