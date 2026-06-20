@@ -148,7 +148,17 @@ namespace NutricionMacros.API.Controllers
             string frontendUrl = _config["AppSettings:FrontendUrl"] ?? "http://localhost:4200";
             string urlFrontend = $"{frontendUrl}/reset-password?token={tokenHex}";
 
-            string cuerpoHtml = $@"...";
+            string cuerpoHtml = $@"
+        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;'>
+            <h2 style='color: #333; text-align: center;'>Recuperación de Contraseña</h2>
+            <p>Hola, <strong>{usuario.Nombre}</strong>.</p>
+            <p>Has solicitado restablecer la contraseña de tu cuenta en <strong>NutricionMacrosApp</strong>. Haz clic en el botón de abajo para configurar una nueva clave:</p>
+            <div style='text-align: center; margin: 30px 0;'>
+                <a href='{urlFrontend}' style='background-color: #007bff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;'>Restablecer mi contraseña</a>
+            </div>
+            <p style='color: #666; font-size: 12px;'>Este enlace expirará automáticamente en 15 minutos por motivos de seguridad.</p>
+            <p style='color: #666; font-size: 12px;'>Si no solicitaste este cambio, puedes ignorar este correo de forma segura.</p>
+        </div>";
 
             // 🔑 IMPORTANTE: No esperes, dispara y olvida (Fire-and-forget)
             // El usuario recibe respuesta inmediatamente
