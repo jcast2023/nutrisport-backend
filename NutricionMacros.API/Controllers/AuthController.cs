@@ -113,7 +113,7 @@ namespace NutricionMacros.API.Controllers
 
         // GET: api/Auth/Pacientes — solo Nutricionista
         [HttpGet("Pacientes")]
-        [Authorize(Roles = "Nutricionista")]
+        [[Authorize(Roles = "Administrador")]
         public async Task<IActionResult> GetPacientes()
         {
             var pacientes = await _context.Usuarios

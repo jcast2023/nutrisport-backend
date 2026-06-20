@@ -94,7 +94,7 @@ namespace NutricionMacros.API.Controllers
 
         // GET: api/Citas/TodasLasCitas — solo Nutricionista
         [HttpGet("TodasLasCitas")]
-        [Authorize(Roles = "Nutricionista")]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> GetTodasLasCitas()
         {
             var citas = await _context.Citas
@@ -116,7 +116,7 @@ namespace NutricionMacros.API.Controllers
 
         // PUT: api/Citas/{id}/estado — solo Nutricionista
         [HttpPut("{id}/estado")]
-        [Authorize(Roles = "Nutricionista")]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> CambiarEstado(int id, [FromBody] CambiarEstadoDto dto)
         {
             var cita = await _context.Citas.FindAsync(id);
